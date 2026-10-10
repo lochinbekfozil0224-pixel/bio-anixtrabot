@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kino Film</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Manrope:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky-top: #120a35;
+    --sky-mid: #2a1470;
+    --sky-low: #7a2a9e;
+    --horizon: #ff6a9c;
+    --gold: #ffd36b;
+    --paper: #f7f2ff;
+    --ink: #1a0b3d;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *, *::before, *::after { box-sizing: inherit; margin: 0; }
+  html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    min-height: 100%;
+    font-family: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--paper);
+    background:
+      radial-gradient(120% 60% at 50% 108%, var(--horizon) 0%, rgba(255,106,156,0) 60%),
+      linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 55%, var(--sky-low) 100%);
+    background-color: var(--sky-top);
+    overflow-x: hidden;
+  }
+  canvas#sky { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+  main {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 28px;
+    padding: 40px 22px 48px;
+    max-width: 460px; margin: 0 auto; text-align: center;
+  }
+
+  .star-wrap { position: relative; width: 132px; height: 132px; display: grid; place-items: center; }
+  .star-wrap::before {
+    content: ""; position: absolute; inset: -30%;
+    background: radial-gradient(circle, rgba(255,211,107,.55) 0%, rgba(255,211,107,0) 65%);
+    animation: pulse 4s ease-in-out infinite;
+  }
+  .star-wrap svg { position: relative; width: 100%; height: 100%; filter: drop-shadow(0 0 18px rgba(255,211,107,.8)); animation: spin 28s linear infinite; }
+
+  h1 {
+    font-family: "Unbounded", "Trebuchet MS", sans-serif;
+    font-weight: 900;
+    font-size: clamp(2.3rem, 11vw, 3.2rem);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    text-shadow: 0 4px 30px rgba(255,106,156,.45);
+  }
+  h1 span { display: block; color: var(--gold); }
+  .tag { font-size: 1.02rem; font-weight: 500; color: rgba(247,242,255,.82); line-height: 1.5; margin-top: 12px; max-width: 30ch; margin-inline: auto; }
+
+  .actions { width: 100%; display: grid; gap: 16px; margin-top: 8px; }
+  .btn {
+    position: relative; display: flex; align-items: center; gap: 16px;
+    padding: 18px 20px; border-radius: 22px; text-decoration: none; text-align: left;
+    color: inherit; overflow: hidden;
+    transition: transform .18s ease, box-shadow .18s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
+  .btn .ico { flex: none; width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; }
+  .btn .ico svg { width: 28px; height: 28px; }
+  .btn .txt { display: grid; gap: 2px; min-width: 0; }
+  .btn .name { font-family: "Unbounded", sans-serif; font-weight: 700; font-size: 1.25rem; }
+  .btn .sub { font-size: .92rem; font-weight: 500; opacity: .85; }
+  .btn .go { margin-left: auto; flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; transition: transform .2s ease; }
+  .btn .go svg { width: 18px; height: 18px; }
+  .btn:hover .go { transform: translateX(4px); }
+
+  .btn.bot {
+    background: linear-gradient(110deg, #ff4f8b, #ff8a5c);
+    color: #fff;
+    box-shadow: 0 14px 40px rgba(255,79,139,.45), inset 0 1px 0 rgba(255,255,255,.35);
+  }
+  .btn.bot .ico { background: rgba(255,255,255,.22); }
+  .btn.bot .go { background: rgba(255,255,255,.25); }
+
+  .btn.kanal {
+    background: rgba(255,255,255,.1);
+    border: 1.5px solid rgba(255,211,107,.7);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 14px 40px rgba(18,10,53,.5);
+  }
+  .btn.kanal .ico { background: var(--gold); color: var(--ink); }
+  .btn.kanal .go { background: rgba(255,211,107,.2); color: var(--gold); }
+
+  @media (hover: hover) { .btn:hover { transform: translateY(-3px); } .btn:active { transform: scale(.97); } }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%,100% { opacity: .65; transform: scale(.95); } 50% { opacity: 1; transform: scale(1.08); } }
+  @media (prefers-reduced-motion: reduce) {
+    .star-wrap svg, .star-wrap::before { animation: none; }
+    .btn, .btn .go { transition: none; }
+  }
+</style>
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+
+<main>
+  <div class="star-wrap" aria-hidden="true">
+    <svg viewBox="-50 -50 100 100">
+      <defs>
+        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#fff3c4"/>
+          <stop offset="1" stop-color="#ffb938"/>
+        </linearGradient>
+      </defs>
+      <path fill="url(#g)" d="M0 -46 C4 -14 14 -4 46 0 C14 4 4 14 0 46 C-4 14 -14 4 -46 0 C-14 -4 -4 -14 0 -46Z"/>
+      <path fill="#fff" opacity=".85" transform="rotate(45) scale(.5)" d="M0 -46 C4 -14 14 -4 46 0 C14 4 4 14 0 46 C-4 14 -14 4 -46 0 C-14 -4 -4 -14 0 -46Z"/>
+    </svg>
+  </div>
+
+  <header>
+    <h1>Kino <span>Film</span></h1>
+    <p class="tag">Anime va kinolar o'zbek tilida. Botga kiring yoki kanalga qo'shiling.</p>
+  </header>
+
+  <nav class="actions" aria-label="Havolalar">
+    <a class="btn bot" href="https://t.me/AniXtraBot?start=_tgr_oTVOElAxYjJi" target="_blank" rel="noopener">
+      <span class="ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="4"/><path d="M12 8V4"/><circle cx="12" cy="3.5" r="1"/><circle cx="9" cy="14" r="1.2" fill="currentColor"/><circle cx="15" cy="14" r="1.2" fill="currentColor"/></svg>
+      </span>
+      <span class="txt"><span class="name">Bot</span><span class="sub">AniXtra bot orqali tomosha qiling</span></span>
+      <span class="go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+
+    <a class="btn kanal" href="https://t.me/hello_SitoraFilm" target="_blank" rel="noopener">
+      <span class="ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 3.5 2.8 10.7c-.9.4-.9 1.1-.2 1.3l4.8 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.7 3.5c.9.5 1.5.2 1.7-.8l3.1-14.7c.3-1.2-.5-1.8-1.5-1.3ZM8.6 13.2l9.4-5.9c.4-.3.8-.1.5.2l-7.8 7-.3 3.2-1.8-4.5Z"/></svg>
+      </span>
+      <span class="txt"><span class="name">Kanal</span><span class="sub">Yangi qismlar shu yerda chiqadi</span></span>
+      <span class="go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+  </nav>
+</main>
+
+<script>
+(function () {
+  var c = document.getElementById('sky');
+  var ctx = c.getContext('2d');
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var stars = [], shoot = null, W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  function resize() {
+    W = window.innerWidth; H = window.innerHeight;
+    c.width = W * dpr; c.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var n = Math.round((W * H) / 5500);
+    stars = [];
+    for (var i = 0; i < n; i++) {
+      stars.push({ x: Math.random() * W, y: Math.random() * H * 0.9, r: Math.random() * 1.4 + 0.3, p: Math.random() * 6.28, s: Math.random() * 1.5 + 0.5 });
+    }
+  }
+
+  function newShoot() {
+    shoot = { x: Math.random() * W * 0.6 + W * 0.3, y: -10, vx: -6 - Math.random() * 3, vy: 3 + Math.random() * 2, life: 0 };
+  }
+
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+    for (var i = 0; i < stars.length; i++) {
+      var s = stars[i];
+      var a = reduce ? 0.8 : 0.45 + 0.55 * Math.abs(Math.sin(t / 1000 * s.s + s.p));
+      ctx.globalAlpha = a;
+      ctx.fillStyle = '#fff6d8';
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.283); ctx.fill();
+    }
+    if (shoot) {
+      shoot.x += shoot.vx; shoot.y += shoot.vy; shoot.life++;
+      var g = ctx.createLinearGradient(shoot.x, shoot.y, shoot.x - shoot.vx * 14, shoot.y - shoot.vy * 14);
+      g.addColorStop(0, 'rgba(255,255,255,1)');
+      g.addColorStop(1, 'rgba(255,211,107,0)');
+      ctx.globalAlpha = 1; ctx.strokeStyle = g; ctx.lineWidth = 2.2; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(shoot.x, shoot.y); ctx.lineTo(shoot.x - shoot.vx * 14, shoot.y - shoot.vy * 14); ctx.stroke();
+      if (shoot.x < -100 || shoot.y > H + 100) { shoot = null; }
+    }
+    ctx.globalAlpha = 1;
+    if (!reduce) requestAnimationFrame(draw);
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+  if (reduce) { draw(0); return; }
+  requestAnimationFrame(draw);
+  setTimeout(newShoot, 700);
+  setInterval(function () { if (!shoot) newShoot(); }, 7000);
+})();
+</script>
+</body>
+</html>
